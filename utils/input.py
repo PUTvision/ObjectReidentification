@@ -1,6 +1,10 @@
 import cv2
+import os
 
 from enum import Enum
+from collections import namedtuple
+
+Frame = namedtuple('Frame', ['index', 'image'])
 
 
 class ImageSourceType(Enum):
@@ -30,4 +34,7 @@ class InputHandler:
     def __get_image_frame(self, camera_index: int):
         camera_name, images_paths = list(self.__image_source.items())[camera_index]
 
-        return cv2.imread(images_paths.pop(0))
+        path = images_paths.pop(0)
+        file_name = os.path.split(path)[1]
+        frame_index = file_name.split('_')[0]
+        return Frame(frame_index, cv2.imread(path))

@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import os
 import argparse
+import copy
 
 from collections import OrderedDict
 from utils.input import InputHandler, ImageSourceType
@@ -13,6 +14,10 @@ from utils.database import Database
 
 parser = argparse.ArgumentParser(description='Object reidentification.')
 parser.add_argument('-i', '--input-dir', dest='input_dir', help='Directory with cameras directories.')
+parser.add_argument('-ic', '--input-comparison-dirs', dest='input_comparison_dirs', nargs='+',
+                    help='Directories with pictures to compare')
+parser.add_argument('-s', '--single-images', action='store_true', default=False,
+                    dest='single_images', help='Use single image for each subject')
 parser.add_argument('-c', '--camera-number', type=int, dest='camera_number', help='Camera number.')
 parser.add_argument('-o', '--output-dir', dest='output_dir', help='Directory to save results to.')
 parser.add_argument('-a', '--add-subject', dest='add_subject', help='Add subject to database.')
@@ -26,6 +31,7 @@ def main(args):
             return False
 
     input_dir = args.input_dir
+    input_comparison_dirs = args.input_comparison_dirs
 
     if input_dir:
         cameras = [file for file in os.listdir(input_dir)
@@ -41,15 +47,28 @@ def main(args):
                     cameras_with_images_paths[camera].append(file_path)
 
         input_handler = InputHandler(ImageSourceType.images, cameras_with_images_paths)
+    elif input_comparison_dirs:
+        print(input_comparison_dirs)
+        cameras_with_images_paths = OrderedDict()
+        for i in range(len(input_comparison_dirs)):
+            cameras_with_images_paths[i] = []
+            files = sorted(os.listdir(input_comparison_dirs[i]))
+            for file in files:
+                cameras_with_images_paths[i].append(os.path.join(input_comparison_dirs[i], file))
+
+        input_handler = InputHandler(ImageSourceType.images, cameras_with_images_paths)
     else:
         input_handler = None
 
-    run(input_handler, args.camera_number, args.add_subject)
+    if not args.single_images:
+        run(input_handler, args.camera_number, args.add_subject)
+    else:
+        handle_single_images(input_handler, len(input_comparison_dirs))
 
 
 def run(input_handler: InputHandler, camera_number, add_to_db):
     Database.initialize()
-    im0 = input_handler.get_frame(camera_number)
+    im0 = input_handler.get_frame(camera_number).image
     im_gray0 = cv2.cvtColor(im0, cv2.COLOR_BGR2GRAY)
     im_draw = np.copy(im0)
     tl, br = util.get_rect(im_draw)
@@ -60,7 +79,7 @@ def run(input_handler: InputHandler, camera_number, add_to_db):
     while True:
         try:
             # Read image
-            im = input_handler.get_frame(camera_number)
+            im = input_handler.get_frame(camera_number).image
 
             im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
             im_draw = np.copy(im)
@@ -91,6 +110,38 @@ def run(input_handler: InputHandler, camera_number, add_to_db):
         except IndexError:
             Database.save_db()
             exit(0)
+
+
+def handle_single_images(input_handler: InputHandler, number_of_cameras):
+    Database.initialize()
+
+    input_handler_copy = copy.deepcopy(input_handler)
+    while True:
+        try:
+            image_index, image = input_handler_copy.get_frame(0)
+            identifier = SubjectIdentifier(image_index)
+            identifier.identify(image)
+        except IndexError:
+            break
+
+    for i in range(1, number_of_cameras):
+        input_handler_copy = copy.deepcopy(input_handler)
+        successes = 0
+        fails = 0
+        while True:
+            try:
+                image_index, image = input_handler_copy.get_frame(i)
+                identifier = SubjectIdentifier()
+                subject = identifier.identify(image)
+
+                if subject.name == image_index:
+                    successes += 1
+                else:
+                    fails += 1
+                    print(image_index, 'identified as', subject.name)
+            except IndexError:
+                print(successes * 100 / (successes + fails))
+                break
 
 if __name__ == '__main__':
     main(parser.parse_args())

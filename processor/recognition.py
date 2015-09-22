@@ -25,13 +25,13 @@ class Subject:
         legs_hue_similarity = cv2.compareHist(histograms.hue.legs, new_histograms.hue.legs, cv2.HISTCMP_CORREL)
         legs_sat_similarity = cv2.compareHist(histograms.sat.legs, new_histograms.sat.legs, cv2.HISTCMP_CORREL)
 
-        return (head_hue_similarity * head_sat_similarity * trunk_hue_similarity * trunk_sat_similarity *
-                legs_hue_similarity * legs_sat_similarity)
+        return ((head_hue_similarity * head_sat_similarity * 0.5) + (trunk_hue_similarity * trunk_sat_similarity * 2) +
+                (legs_hue_similarity * legs_sat_similarity * 1.5))
 
     def __check_if_approximately_matches(self, new_histograms: SubjectHistograms):
         matched = False
         for histograms in self.__histograms:
-            if self.__compare_histograms(histograms, new_histograms) > 0.8:
+            if self.__compare_histograms(histograms, new_histograms) > 0.9:
                 matched = True
                 break
 
@@ -66,7 +66,7 @@ class Subject:
 
 
 class SubjectIdentifier:
-    def __init__(self, add_to_db):
+    def __init__(self, add_to_db=None):
         self.__add_to_db = add_to_db
         self.__subjects = Database.get_subjects()
         self.__subject = Database.get_subject(add_to_db)
