@@ -37,7 +37,7 @@ class Database:
             pickle.dump(cls.__subjects, subjects_db)
 
     @classmethod
-    def add_subject(cls, subject_to_add):
+    def add_subject(cls, subject_to_add: 'Subject'):
         for subject in cls.__subjects:
             if subject.name == subject_to_add.name:
                 return

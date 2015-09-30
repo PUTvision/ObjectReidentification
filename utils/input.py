@@ -3,6 +3,7 @@ import os
 
 from enum import Enum
 from collections import namedtuple
+from typing import NamedTuple
 
 Frame = namedtuple('Frame', ['index', 'image'])
 
@@ -25,14 +26,14 @@ class InputHandler:
         else:
             raise ValueError('Unknown image source type')
 
-    def __get_camera_frame(self, camera_index: int):
+    def __get_camera_frame(self, camera_name: str):
         pass
 
-    def __get_video_frame(self, camera_index: int):
+    def __get_video_frame(self, camera_name: str):
         pass
 
-    def __get_image_frame(self, camera_index: int):
-        camera_name, images_paths = list(self.__image_source.items())[camera_index]
+    def __get_image_frame(self, camera_name: str):
+        images_paths = self.__image_source[camera_name]
 
         path = images_paths.pop(0)
         file_name = os.path.split(path)[1]
