@@ -13,15 +13,15 @@ from processor import util
 from processor.recognition import SubjectIdentifier
 from utils.database import Database
 
-parser = argparse.ArgumentParser(description='Object reidentification.')
-parser.add_argument('-i', '--input-dir', dest='input_dir', help='Directory with cameras directories.')
+parser = argparse.ArgumentParser(description='Object reidentification')
+parser.add_argument('-i', '--input-dir', dest='input_dir', help='Directory with cameras directories')
 parser.add_argument('-ic', '--input-comparison-dirs', dest='input_comparison_dirs', nargs='+',
                     help='Directories with pictures to compare')
 parser.add_argument('-s', '--single-images', action='store_true', default=False,
                     dest='single_images', help='Use single image for each subject')
-parser.add_argument('-c', '--camera-name', type=str, dest='camera_name', help='Camera name.')
-parser.add_argument('-o', '--output-dir', dest='output_dir', help='Directory to save results to.')
-parser.add_argument('-a', '--add-subject', dest='add_subject', help='Add subject to database.')
+parser.add_argument('-c', '--camera-name', type=str, dest='camera_name', help='Camera name')
+parser.add_argument('-o', '--output-dir', dest='output_dir', help='Directory to save results to')
+parser.add_argument('-a', '--add-subject', dest='add_subject', help='Add subject to database')
 
 
 def main(args):

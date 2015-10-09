@@ -1,11 +1,11 @@
 import cv2
 import os
+import numpy
 
 from enum import Enum
-from collections import namedtuple
 from typing import NamedTuple
 
-Frame = namedtuple('Frame', ['index', 'image'])
+Frame = NamedTuple('Frame', [('index', int), ('image', numpy.ndarray)])
 
 
 class ImageSourceType(Enum):

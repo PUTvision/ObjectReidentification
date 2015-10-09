@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import cv2
 import argparse
 import os
